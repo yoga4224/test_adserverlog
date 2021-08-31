@@ -31,10 +31,20 @@ const params = {
   QueueUrl: `https://sqs.ap-southeast-2.amazonaws.com/339964025065/queue-one`
 };
 
-sqs.sendMessage(params, (err, data) => {
-  if (err) {
-    console.log("Error", err);
-  } else {
-    console.log("Successfully added message", data.MessageId);
-  }
-});
+const sendingMessage = async (params) => {
+  return await sqs.sendMessage(params,(err, data)).promise();
+}
+
+module.exports = {
+  sqs,
+  sendingMessage,
+}
+
+// sqs.sendMessage(params, (err, data) => {
+//   if (err) {
+//     console.log("Error", err);
+//   } else {
+//     console.log("Successfully added message", data.MessageId);
+//   }
+// });
+

@@ -1,5 +1,7 @@
+const serverless = require('serverless-http');
 const express = require('express');
-const app = express();
+const bodyParser = require('body-parser')
+
 const {
     addOrUpdateCharacter,
     getCharacters,
@@ -7,12 +9,26 @@ const {
     getCharacterById,
 } = require('./dynamo');
 
+const {
+    sendingMessage,
+} = require('./sqsSend');
+
+const app = express();
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post('/post-test', (req, res) => {
+    console.log('Got body:', req.body);
+    res.sendStatus(200);
+});
 
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
+app.post('/send', async (req, res) => {
+
+})
 app.get('/log', async (req, res) => {
     try {
         const characters = await getCharacters();
@@ -68,9 +84,14 @@ app.delete('/log/:id', async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`listening on port port`);
-});
+// const port = process.env.PORT || 3000;
+// app.listen(port, () => {
+//     console.log(`listening on port port`);
+// });
+
+const handler = serverless(app);
+exports.handler = async(event, contex) => {
+    return await handler(event,contex)
+}
 
 
