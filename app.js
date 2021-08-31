@@ -2,6 +2,8 @@ const serverless = require('serverless-http');
 const express = require('express');
 const bodyParser = require('body-parser')
 
+const app = express();
+
 const {
     addOrUpdateCharacter,
     getCharacters,
@@ -13,6 +15,10 @@ const {
 const {
     getMessage,
 } = require('./sqsRecive');
+
+const {
+    sendingMessage,
+} = require('./sqsSend');
 
 const config = require('./config');
 
@@ -93,6 +99,17 @@ app.get('/message', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ err: err });
+    }
+});
+
+app.post('/send', async (req, res) => {
+    const character = req.body;
+    try {
+        const sendQueue = await sendingMessage(character);
+        res.json(newCharacter);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ err: 'Something went wrong' });
     }
 });
 

@@ -36,7 +36,6 @@ const sendingMessage = async (params) => {
 }
 
 module.exports = {
-  sqs,
   sendingMessage,
 }
 
