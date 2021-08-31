@@ -7,15 +7,17 @@ const {
     getCharacters,
     deleteCharacter,
     getCharacterById,
+    updateCharacter,
 } = require('./dynamo');
 
 const {
-    sendingMessage,
-} = require('./sqsSend');
+    getMessage,
+} = require('./sqsRecive');
 
-const app = express();
+const config = require('./config');
+
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/post-test', (req, res) => {
     console.log('Got body:', req.body);
@@ -63,14 +65,14 @@ app.post('/log', async (req, res) => {
 
 app.put('/log/:id', async (req, res) => {
     const character = req.body;
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     character.id = id;
     try {
-        const newCharacter = await addOrUpdateCharacter(character);
+        const newCharacter = await updateCharacter(character);
         res.json(newCharacter);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
+        res.status(500).json({ err: err });
     }
 });
 
@@ -84,14 +86,19 @@ app.delete('/log/:id', async (req, res) => {
     }
 });
 
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//     console.log(`listening on port port`);
-// });
+app.get('/message', async (req, res) => {
+    try {
+        const msg = await getMessage();
+        res.json(msg);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ err: err });
+    }
+});
 
-const handler = serverless(app);
-exports.handler = async(event, contex) => {
-    return await handler(event,contex)
-}
+const port = config.PORT || 3000;
+app.listen(port, () => {
+    console.log(`listening on port port`);
+});
 
 
