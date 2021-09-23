@@ -1,4 +1,4 @@
-service: aws-lambda-consumer-test
+service: aws-lambda-producer-one
 frameworkVersion: '2'
 useDotenv: true
 

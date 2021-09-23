@@ -1,121 +1,73 @@
+const AWS = require('aws-sdk');
+const requestIp = require('request-ip');
 const serverless = require('serverless-http');
 const express = require('express');
-const bodyParser = require('body-parser')
+const {v4 : uuidv4} = require('uuid')
 
 const app = express();
-
-const {
-    addOrUpdateCharacter,
-    getCharacters,
-    deleteCharacter,
-    getCharacterById,
-    updateCharacter,
-} = require('./dynamo');
-
-const {
-    getMessage,
-} = require('./sqsRecive');
-
-const {
-    sendingMessage,
-} = require('./sqsSend');
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
 
 const config = require('./config');
 
-app.use(express.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-app.post('/post-test', (req, res) => {
-    console.log('Got body:', req.body);
-    res.sendStatus(200);
+// Set the region we will be using
+const region =  config.AWS_DEFAULT_REGION;
+AWS.config.update({region: `${region}`});
+AWS.config.update({
+    // region: config.AWS_DEFAULT_REGION,
+    accountId: config.AWS_SQS_ACCOUNT_ID,
+    queueName: config.AWS_SQS_NAME,
+    QueueUrl : config.AWS_SQS_URL,
+    accessKeyId: config.AWS_ACCESS_KEY_ID,
+    secretAccessKey: config.AWS_SECRET_ACCESS_KEY
 });
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
+// Create SQS service client
+const sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+
+const queueUrl = "https://sqs.ap-southeast-2.amazonaws.com/339964025065/queue-one";
+
+app.get('/tracker', (req, res) => {
+
+    var clientIp = requestIp.getClientIp(req);
+    const userId    = uuidv4();
+    var ips         = clientIp; 
+
+    const cachebuster   = (new Date(1630656110158)).toISOString()
+    const referer       = req.query.referer;
+
+    // Setup the sendMessage parameter object
+    const params = {
+        MessageBody: JSON.stringify({
+            id: userId,
+            cachebuster: cachebuster,
+            referer: referer,
+            ip: ips,
+        }),
+    //   QueueUrl: `${sqsUrl}/${accountId}/${queueName}`
+        QueueUrl:queueUrl
+    };
+
+      // Send the order data to the SQS queue
+      const sendSqsMessage = sqs.sendMessage(params).promise();
+
+      sendSqsMessage.then((data) => {
+        console.log(`insert | SUCCESS: ${data.MessageId}`);
+        res.send("Thank you");
+        }).catch((err) => {
+            console.log(`insert | ERROR: ${err}`);
+
+            // Send email to emails API
+            res.send("We ran into an error. Please try again.");
+    });
+    
 });
 
-app.post('/send', async (req, res) => {
+// const port = config.PORT || 3000;
+// app.listen(port, () => {
+//     console.log(`listening on port port`);
+// });
 
-})
-app.get('/log', async (req, res) => {
-    try {
-        const characters = await getCharacters();
-        res.json(characters);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
-    }
-});
-
-app.get('/log/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
-    try {
-        const character = await getCharacterById(id);
-        res.json(character);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
-    }
-});
-
-app.post('/log', async (req, res) => {
-    const character = req.body;
-    try {
-        const newCharacter = await addOrUpdateCharacter(character);
-        res.json(newCharacter);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
-    }
-});
-
-app.put('/log/:id', async (req, res) => {
-    const character = req.body;
-    const id = parseInt(req.params.id);
-    character.id = id;
-    try {
-        const newCharacter = await updateCharacter(character);
-        res.json(newCharacter);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: err });
-    }
-});
-
-app.delete('/log/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
-    try {
-        res.json(await deleteCharacter(id));
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
-    }
-});
-
-app.get('/message', async (req, res) => {
-    try {
-        const msg = await getMessage();
-        res.json(msg);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: err });
-    }
-});
-
-app.post('/send', async (req, res) => {
-    const character = req.body;
-    try {
-        const sendQueue = await sendingMessage(character);
-        res.json(newCharacter);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ err: 'Something went wrong' });
-    }
-});
-
-const port = config.PORT || 3000;
-app.listen(port, () => {
-    console.log(`listening on port port`);
-});
-
-
+module.exports.handler = serverless(app);

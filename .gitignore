@@ -4,3 +4,4 @@ config.js
 .vs
 .serverless
 
+package-lock.json
