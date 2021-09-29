@@ -139,80 +139,46 @@ app.post('/send', async (req, res) => {
 
 app.post('/imp', async (req, res) => {
     const params = req.body;
-    try {
-        const data = await mongoInsert(params);
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoInsert(params);
+    res.status(200).json(data);
 });
 
 app.post('/imp-update/:id', async (req, res) => {
     const id = req.params.id;
     const params = req.body;
-    try {
-        const data = await mongoUpdate(id,params);
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoUpdate(id,params);
+    res.status(200).json(data);
 });
 
 app.post('/imp-upsert/:id', async (req, res) => {
     const id = req.params.id;
     const params = req.body;
-    try {
-        const data = await mongoUpsert(id,params);
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoUpsert(id,params);
+    res.status(200).json(data);
 });
 
 app.get('/imp', async (req, res) => {
-    try {
-        const data = await mongoGetAll();
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoGetAll();
+    res.status(200).json(data);
 });
 
 app.get('/imp/:id', async (req, res) => {
     const id = req.params.id;
-    try {
-        const data = await mongoGetById(id);
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoGetById(id);
+    res.status(200).json(data);
 });
 
 app.get('/imp-pagination', async (req, res) => {
     const params = req.body;
-    try {
-        const data = await mongoGetPagination(params);
-        res.json({success:true,...data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoGetPagination(params);
+    res.status(200).json(data);
 });
 
 app.get('/imp-loaded', async (req, res) => {
     const params = req.body;
-    try {
-        const data = await mongoGetUsingAggregate(params);
-        res.json({success:true,data:data});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success:false, msg: 'Something went wrong' });
-    }
+    const data = await mongoGetUsingAggregate(params);
+    res.status(200).json(data);
+
 });
 
 const port = config.PORT || 3000;

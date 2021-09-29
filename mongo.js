@@ -5,89 +5,152 @@ const uri = "mongodb+srv://"+config.MONGO_USER+":"+config.MONGO_PASSWORD+"@"+con
 const client = new MongoClient(uri);
 
 const insertOne = async (params) => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").insertOne(params);
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").insertOne(params);
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const updateOne = async (id, params) => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").updateOne({ id: id }, { $set: params });
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").updateOne({ id: id }, { $set: params });
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const upsert = async (id, params) => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").updateOne({ id: id }, { $set: params }, { upsert: true });
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").updateOne({ id: id }, { $set: params }, { upsert: true });
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const getAll = async () => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").find().toArray();
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").find().toArray();
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const getById = async (id) => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").findOne({id:id});
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").findOne({id:id});
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const getPagination = async (params) => {
-    await client.connect();
+    try {
+        await client.connect();
 
-    const limit = params.limit;
-    const offset = (params.offset - 1)*limit;
-    const filter = {
-        'referer' : {$regex: `.*${params.name}`, $options:"i"}
-    };
-    const option = {
-        'limit' : limit,
-        'skip'  : offset,
-        'sort'  : {'_id':-1}
+        const limit = params.limit;
+        const offset = (params.offset - 1)*limit;
+        const filter = {
+            'referer' : {$regex: `.*${params.name}`, $options:"i"}
+        };
+        const option = {
+            'limit' : limit,
+            'skip'  : offset,
+            'sort'  : {'_id':-1}
+        }
+
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").find(filter, option).toArray();
+        const total_data = await client.db(config.MONGO_DATABASE).collection("imp_test").count(filter);
+
+        var res = {success:true,total_rows:total_data,data:data};
+
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
     }
 
-    const res = await client.db(config.MONGO_DATABASE).collection("imp_test").find(filter, option).toArray();
-    const total_res = await client.db(config.MONGO_DATABASE).collection("imp_test").count(filter);
-
-    await client.close();
-
-    return {'total_rows': total_res, 'data': res}
+    return res;
 };
 
 const getUsingAggregate = async (params) => {
-    await client.connect();
-    const pipeline = [
-        {
-            '$group': {
-                '_id': '$user_device.type',
-                'totalLoaded': {
-                    '$sum': '$loaded'
+    try {
+        await client.connect();
+        const pipeline = [
+            {
+                '$group': {
+                    '_id': '$user_device.type',
+                    'totalLoaded': {
+                        '$sum': '$loaded'
+                    }
+                }
+            }, {
+                '$sort': {
+                    '_id': 1
                 }
             }
-        }, {
-            '$sort': {
-                '_id': 1
-            }
-        }
-    ];
+        ];
 
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").aggregate(pipeline).toArray();
-    await client.close();
-    return $data;
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").aggregate(pipeline).toArray();
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 const deleteById = async (id) => {
-    await client.connect();
-    $data = await client.db(config.MONGO_DATABASE).collection("imp_test").deleteOne({ id: id });
-    await client.close();
-    return $data;
+    try {
+        await client.connect();
+        const data = await client.db(config.MONGO_DATABASE).collection("imp_test").deleteOne({ id: id });
+
+        var res = {success:true,data:data};
+    } catch (err) {
+        var res = {success:false,msg: 'Something went wrong'};
+    } finally {
+        await client.close();
+    }
+
+    return res;
 };
 
 module.exports = {
