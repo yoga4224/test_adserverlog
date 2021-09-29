@@ -9,6 +9,7 @@ AWS.config.update({
 });
 
 const dynamoClient = new AWS.DynamoDB.DocumentClient();
+const dynamoDB = new AWS.DynamoDB();
 const TABLE_NAME = 'log';
 const getCharacters = async () => {
     const params = {
@@ -63,6 +64,20 @@ const deleteCharacter = async (id) => {
     return await dynamoClient.delete(params).promise();
 };
 
+const selectUsingSql = async (character) => {
+    const params = {
+        Statement: 'select * from log group by type'
+    };
+
+    console.log(params);
+    const results = await dynamoDB.executeStatement(params).promise();
+    const data = results.Items.map(
+        (record) => AWS.DynamoDB.Converter.unmarshall(record)
+    );
+
+    return data;
+};
+
 module.exports = {
     dynamoClient,
     getCharacters,
@@ -70,4 +85,5 @@ module.exports = {
     addOrUpdateCharacter,
     deleteCharacter,
     updateCharacter,
+    selectUsingSql
 };

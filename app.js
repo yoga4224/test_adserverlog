@@ -1,4 +1,4 @@
-const serverless = require('serverless-http');
+// const serverless = require('serverless-http');
 const express = require('express');
 const bodyParser = require('body-parser')
 
@@ -10,7 +10,19 @@ const {
     deleteCharacter,
     getCharacterById,
     updateCharacter,
+    selectUsingSql,
 } = require('./dynamo');
+
+const {
+    insertOne:mongoInsert,
+    updateOne:mongoUpdate,
+    upsert:mongoUpsert,
+    getAll:mongoGetAll,
+    getById:mongoGetById,
+    getPagination:mongoGetPagination,
+    getUsingAggregate:mongoGetUsingAggregate,
+    deleteById:mongoDeleteById,
+} = require('./mongo');
 
 const {
     getMessage,
@@ -44,6 +56,16 @@ app.get('/log', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ err: 'Something went wrong' });
+    }
+});
+
+app.get('/log-sql', async (req, res) => {
+    try {
+        const characters = await selectUsingSql();
+        res.json(characters);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ err: err });
     }
 });
 
@@ -110,6 +132,86 @@ app.post('/send', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ err: 'Something went wrong' });
+    }
+});
+
+/* ============= test using mongo ================= */
+
+app.post('/imp', async (req, res) => {
+    const params = req.body;
+    try {
+        const data = await mongoInsert(params);
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.post('/imp-update/:id', async (req, res) => {
+    const id = req.params.id;
+    const params = req.body;
+    try {
+        const data = await mongoUpdate(id,params);
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.post('/imp-upsert/:id', async (req, res) => {
+    const id = req.params.id;
+    const params = req.body;
+    try {
+        const data = await mongoUpsert(id,params);
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.get('/imp', async (req, res) => {
+    try {
+        const data = await mongoGetAll();
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.get('/imp/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const data = await mongoGetById(id);
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.get('/imp-pagination', async (req, res) => {
+    const params = req.body;
+    try {
+        const data = await mongoGetPagination(params);
+        res.json({success:true,...data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
+    }
+});
+
+app.get('/imp-loaded', async (req, res) => {
+    const params = req.body;
+    try {
+        const data = await mongoGetUsingAggregate(params);
+        res.json({success:true,data:data});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success:false, msg: 'Something went wrong' });
     }
 });
 
